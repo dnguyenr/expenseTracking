@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
-import axios from "axios";
 
 function App() {
     const [expenses, setExpenses] = useState([]);
@@ -17,12 +16,26 @@ function App() {
         }
     };
 
-    // Function to handle adding a new expense
-    const handleExpenseAdded = () => {
-        fetchExpenses(); // Refresh the expense list
+    // Add expense
+    const handleAddExpense = async (newExpense) => {
+        try {
+            const response = await axios.post("http://localhost:8000/expenses/", newExpense);
+            setExpenses((prevExpenses) => [...prevExpenses, response.data]);
+        } catch (error) {
+            console.error("Error adding expense:", error);
+        }
     };
 
-    // Fetch expenses when the component loads
+    // Delete expense
+    const handleDeleteExpense = async (id) => {
+        try {
+            await axios.delete(`http://localhost:8000/expenses/${id}`);
+            setExpenses((prevExpenses) => prevExpenses.filter((expense) => expense.id !== id));
+        } catch (error) {
+            console.error("Error deleting expense:", error);
+        }
+    };
+
     useEffect(() => {
         fetchExpenses();
     }, []);
@@ -30,13 +43,10 @@ function App() {
     return (
         <div>
             <h1>Expense Tracker</h1>
-            {/* Pass handleExpenseAdded to ExpenseForm */}
-            <ExpenseForm onExpenseAdded={handleExpenseAdded} />
-            {/* Pass expenses to ExpenseList */}
-            <ExpenseList expenses={expenses} />
+            <ExpenseForm onAddExpense={handleAddExpense} />
+            <ExpenseList expenses={expenses} onDeleteExpense={handleDeleteExpense} />
         </div>
     );
 }
 
 export default App;
-
